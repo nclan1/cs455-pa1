@@ -52,6 +52,28 @@ parser.add_argument(
     default=0,
 )
 
+
+def recv_until_newline(sock):
+    """
+    helper fxn, read from scoket until newline, return none if connection close
+    """
+    buffer = ""
+    while True:
+        try:
+            chunk = sock.recv(4096).decode("utf-8")
+            if not chunk:
+                return None
+
+            buffer += chunk
+
+            if "\n" in buffer:
+                message, rest = buffer.split("\n", 1)
+                return message
+        except Exception as e:
+            print(f"Error reading: {e}")
+            return None
+
+
 args = parser.parse_args()
 # print(args)
 
@@ -82,11 +104,27 @@ try:
         print("Got OK, prepping measurement phase...")
         # <PROTOCOL PHASE><WS><PROBE SEQUENCE NUMBER><WS><PAYLOAD>\n
         seq_num = 1
-        payload = get_fixed_lorem(args.size)
+        payload = get_fixed_lorem(args.size).decode("utf-8")
         while seq_num <= args.probes:
             probe_message = f"m {seq_num} {payload}\n"
+            # starting timer
+            start_time = time.time()
+
+            # send probe
             client_socket.send(probe_message.encode())
-            print(f"sent message number {seq_num}")
+            print(f"sent message number {seq_num}, waiting for echo...")
+
+            # wait for echo
+            echoed_msg = recv_until_newline(client_socket)
+
+            # stop time
+            end_time = time.time()
+
+            if echoed_msg:
+                rtt = end_time - start_time
+                print(f"Received echo for sequence {seq_num}. RTT: {rtt:.5f} seconds")
+            else:
+                print("failed to receive echo.")
             seq_num += 1
 
 
