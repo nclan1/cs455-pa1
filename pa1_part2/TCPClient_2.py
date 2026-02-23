@@ -3,7 +3,7 @@ from socket import *
 
 # set up parser
 parser = argparse.ArgumentParser(
-    description="Python Client acting as a server to perform RTT and Throughput Measurements"
+    description="Python script acting as the client to perform RTT and Throughput measurement."
 )
 
 parser.add_argument(
@@ -15,7 +15,7 @@ parser.add_argument(
     "-p",
     "--port",
     type=int,
-    help="The port number to connect to. Default: 9090",
+    help="The port number to connect to. Default: 9090.",
     default=9090,
 )
 
