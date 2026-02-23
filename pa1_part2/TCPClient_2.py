@@ -1,6 +1,7 @@
 import argparse
 import time
 from socket import *
+from statistics import mean
 
 # set up parser
 parser = argparse.ArgumentParser(
@@ -104,6 +105,7 @@ try:
         print("Got OK, prepping measurement phase...")
         # <PROTOCOL PHASE><WS><PROBE SEQUENCE NUMBER><WS><PAYLOAD>\n
         seq_num = 1
+        mean_rtt = 0
         payload = get_fixed_lorem(args.size).decode("utf-8")
         while seq_num <= args.probes:
             probe_message = f"m {seq_num} {payload}\n"
@@ -123,10 +125,13 @@ try:
             if echoed_msg:
                 rtt = end_time - start_time
                 print(f"Received echo for sequence {seq_num}. RTT: {rtt:.5f} seconds")
+                mean_rtt += rtt
             else:
                 print("failed to receive echo.")
             seq_num += 1
 
+        mean_rtt = mean_rtt / args.probes
+        print(f"Mean RTT time is {mean_rtt} seconds")
 
 except ConnectionRefusedError:
     print(f"Could not connect to {args.host}:{args.port}")
