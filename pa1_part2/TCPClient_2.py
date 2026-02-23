@@ -30,26 +30,43 @@ parser.add_argument(
 parser.add_argument(
     "-n",
     "--probes",
+    type=int,
     help="Number of measurement probes that the server should expect to receive",
+    required=True,
 )
 
-# parser.add_argument("-ms", "--measurement-type")
+parser.add_argument(
+    "-d",
+    "--delay",
+    type=int,
+    help="Amount of time that the server should wait before echoing the message back. Default: 0",
+    default=0,
+)
 
-# clientSocket = socket(AF_INET, SOCK_STREAM)
-# clientSocket.connect((serverName, serverPort))
+args = parser.parse_args()
+# print(args)
+
+# start the socket connection
+try:
+    client_socket = socket(AF_INET, SOCK_STREAM)
+    client_socket.connect((args.host, args.port))
+
+    # after setting up the connection, send a message with the following format
+    # <PROTOCOL PHASE><WS><MEASUREMENT TYPE><WS><NUMBER OF PROBES><WS><MESSAGE SIZE><WS><SERVER DELAY>\n
+
+    test = "this is a test"
+    client_socket.send(test.encode())
+
+    received_test = client_socket.recv(1024)
+    print("From Server:", received_test.decode())
 
 
-# after setting up the connection, send a message with the following format
-# <PROTOCOL PHASE><WS><MEASUREMENT TYPE><WS><NUMBER OF PROBES><WS><MESSAGE SIZE><WS><SERVER DELAY>\n
-#
-# measurement_type = input("Input 'rtt' or 'tput': ")
-# num_probes = input("Input number of probes: ")
-# msg_size = int(input("Input bytes in payload: "))
-# server_delay = int(input("Input amount of time server shoudl wait: (default 0)"), 0)
+except ConnectionRefusedError:
+    print(f"Could not connect to {args.host}:{args.port}")
+except Exception as e:
+    print("Error:", e)
+finally:
+    client_socket.close()
 
-# clientSocket.send(TODO HERE)
 # modifiedSentence = clientSocket.recv(1024)
 # print("From Server:", modifiedSentence.decode())
-# clientSocket.close()
-#
-args = parser.parse_args()
