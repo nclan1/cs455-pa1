@@ -27,21 +27,32 @@ try:
     serverSocket.bind((args.host, args.port))
     serverSocket.listen(1)
     print(f"The server is ready to receive on {args.host}:{args.port}")
-except OSError as e:
-    print("Error: ", e)
 
-
-try:
     while True:
         connectionSocket, addr = serverSocket.accept()
-        print("Created a connection...")
+        print(f"Created a connection with {addr}")
         # This is the dedicated socket
-        sentence = connectionSocket.recv(1024).decode()
-        capitalizedSentence = sentence.upper()
+        payload = connectionSocket.recv(1024).decode()
+        parsed = payload.split(" ")
+        # <PROTOCOL PHASE><WS><MEASUREMENT TYPE><WS><NUMBER OF PROBES><WS><MESSAGE SIZE><WS><SERVER DELAY>\n
+        protocol_phase = parsed[0]
+        measurement_type = parsed[1]
+        num_probes = parsed[2]
+        message_size = parsed[3]
+        server_delay = parsed[4]
+
+        print(
+            f"protocol phase: {protocol_phase}\nmeasurement type: {measurement_type}\nnumber of probes: {num_probes}\nmessage size: {message_size}\nserver delay: {server_delay}"
+        )
+
+        # capitalizedSentence = payload.upper()
+        # Check if the connection is valid.
         connectionSocket.send(capitalizedSentence.encode())
         connectionSocket.close()
         print("Closed a connection")
 except KeyboardInterrupt:
     print("Closing server...")
+except OSError as e:
+    print("Error: ", e)
 except Exception as e:
     print("Some error:", e)

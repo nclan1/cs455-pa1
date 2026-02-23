@@ -36,6 +36,10 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "-s", "--size", type=int, help="Size of the probe's payload in bytes", required=True
+)
+
+parser.add_argument(
     "-d",
     "--delay",
     type=int,
@@ -54,9 +58,10 @@ try:
     # after setting up the connection, send a message with the following format
     # <PROTOCOL PHASE><WS><MEASUREMENT TYPE><WS><NUMBER OF PROBES><WS><MESSAGE SIZE><WS><SERVER DELAY>\n
 
-    test = "this is a test"
-    client_socket.send(test.encode())
-
+    # ----------------FIRST STEP----------------
+    init_message = f"s {args.measurement_type} {args.probes} {args.size} {args.delay}\n"
+    # print(f"sending: {init_message}")
+    client_socket.send(init_message.encode())
     received_test = client_socket.recv(1024)
     print("From Server:", received_test.decode())
 
