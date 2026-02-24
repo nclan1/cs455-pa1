@@ -133,6 +133,20 @@ try:
         mean_rtt = mean_rtt / args.probes
         print(f"Mean RTT time is {mean_rtt} seconds")
 
+        # ----------------THIRD STEP----------------
+        termination_req = "t\n"
+        print("Sending termination request...")
+        client_socket.send(termination_req.encode())
+        res = recv_until_newline(client_socket)
+        print("got message back")
+        print(res)
+
+        if res == "200 OK: Closing Connection":
+            print("Succesfully received closing, closing own connection")
+        else:
+            print("Failed to disconnect, closing anyways")
+
+
 except ConnectionRefusedError:
     print(f"Could not connect to {args.host}:{args.port}")
 except Exception as e:

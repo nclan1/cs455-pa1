@@ -63,10 +63,12 @@ try:
         while True:
             # print(f"Entered a loop for {addr}")
             payload = recv_until_newline(connectionSocket)
+            # print(payload)
             if not payload:
                 break
             # <PROTOCOL PHASE><WS><MEASUREMENT TYPE><WS><NUMBER OF PROBES><WS><MESSAGE SIZE><WS><SERVER DELAY>\n
             protocol_phase = payload[0]
+            # print(protocol_phase)
 
             okay_message = "200 OK: READY"
             bad_message = "404 ERROR: Invalid Connection Setup Message"
@@ -96,12 +98,18 @@ try:
                     print("Invalid sequence number, exiting...")
                     break
                 if seq_num == probe_start:
-                    print(f"echoing probe {seq_num}")
+                    print(f"echoing probe {seq_num}...")
 
                     # wait for specified delay
                     time.sleep(float(server_delay))
                     echo_msg = f"{payload}\n"
                     connectionSocket.send(echo_msg.encode())
+            elif protocol_phase == "t":
+                print("-" * 40)
+                term_msg = "200 OK: Closing Connection\n"
+                connectionSocket.send(term_msg.encode())
+                print("Ending TCP Connection...")
+                break
 
             else:
                 print(f"Got bad message: {payload}")
