@@ -48,7 +48,7 @@ parser.add_argument(
 parser.add_argument(
     "-d",
     "--delay",
-    type=int,
+    type=float,
     help="Amount of time that the server should wait before echoing the message back. (Default: 0)",
     default=0,
 )
