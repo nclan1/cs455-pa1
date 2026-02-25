@@ -23,7 +23,41 @@ print("Server response:", response)
 
 # Check Response
 if response.startswith("200 OK"):
-    print("CSP successful. Ready for Measurement Phase.")
+    # Check Response
+if response.startswith("200 OK"):
+    print("CSP successful, now MP:")
+
+    total_rtt = 0.0
+
+    for seq in range(1, num_probes + 1):
+
+        payload = "a" * msg_size
+        probe_msg = f"m {seq} {payload}\n"
+
+        t_start = time.perf_counter()
+
+        clientSocket.sendall(probe_msg.encode())
+
+        echo = clientSocket.recv(1024).decode()
+
+        t_end = time.perf_counter()
+
+        rtt = t_end - t_start
+        total_rtt += rtt
+
+        if measurement_type == "rtt":
+            print(f"Probe {seq} RTT: {rtt:.6f} seconds")
+        if measurement_type == "tput":
+            tput_bps = (msg_size * 8) / rtt
+            print(f"Probe {seq} throughput: {tput_bps/1e6:.3f} Mbps")
+
+    avg_rtt = total_rtt / num_probes
+    print(f"\nAverage RTT: {avg_rtt:.6f} seconds")
+
+else:
+    print("CSP failed.")
+
+clientSocket.close()
 else:
     print("CSP failed.")
 
