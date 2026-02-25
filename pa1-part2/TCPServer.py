@@ -58,7 +58,55 @@ try:
         if valid:
             print(f"CSP succesfultype={mtype}, probes={nprobes}, msg_size={msgsize}, delay={delay}")
             connectionSocket.sendall(b"200 OK: Ready")
-            # keep connection open (next phase later)
+            
+            expected_seq = 1
+
+            for _ in range(nprobes):
+                mp_line = recv_bytes(connectionSocket)
+                if mp_line is None:
+                    connectionSocket.close()
+                    break
+
+                parts = mp_line.split(" ", 2)
+                if len(parts) != 3:
+                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message")
+                    connectionSocket.close()
+                    break
+
+                phase, seq_s, payload = parts
+
+                # phase check
+                if phase != "m":
+                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message")
+                    connectionSocket.close()
+                    break
+
+                # seq number check
+                try:
+                    seq = int(seq_s)
+                except ValueError:
+                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message")
+                    connectionSocket.close()
+                    break
+
+                if seq != expected_seq or seq > nprobes:
+                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message")
+                    connectionSocket.close()
+                    break
+
+                # payload size check (bytes)
+                if len(payload.encode()) != msgsize:
+                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message")
+                    connectionSocket.close()
+                    break
+
+                # delay then echo back same line (with newline)
+                if delay > 0:
+                    time.sleep(delay / 1000.0)
+
+                connectionSocket.sendall((mp_line + "\n").encode())
+
+                expected_seq += 1
         else:
             connectionSocket.sendall(b"404 ERROR: Invalid Connection Setup Message")
             connectionSocket.close()
