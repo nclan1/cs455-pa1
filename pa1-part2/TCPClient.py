@@ -1,3 +1,4 @@
+import time
 from socket import *
 
 serverName = input("Input host name or IP: ")
