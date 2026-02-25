@@ -56,7 +56,3 @@ else:
     print("CSP failed.")
 
 clientSocket.close()
-else:
-    print("CSP failed.")
-
-clientSocket.close()
