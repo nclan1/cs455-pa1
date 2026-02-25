@@ -19,8 +19,7 @@ try:
         print("Created a connection...")
         # This is the dedicated socket
         sentence = connectionSocket.recv(1024).decode()
-        capitalizedSentence = sentence.upper()
-        connectionSocket.send(capitalizedSentence.encode())
+        connectionSocket.send(sentence.encode())
         connectionSocket.close()
         print("Closed a connection")
 except KeyboardInterrupt:

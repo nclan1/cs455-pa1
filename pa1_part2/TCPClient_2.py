@@ -106,6 +106,7 @@ try:
         # <PROTOCOL PHASE><WS><PROBE SEQUENCE NUMBER><WS><PAYLOAD>\n
         seq_num = 1
         mean_rtt = 0
+        mean_tput = 0
         payload = get_fixed_lorem(args.size).decode("utf-8")
         while seq_num <= args.probes:
             probe_message = f"m {seq_num} {payload}\n"
@@ -124,15 +125,31 @@ try:
 
             if echoed_msg:
                 rtt = end_time - start_time
-                print(f"Received echo for sequence {seq_num}. RTT: {rtt:.5f} seconds")
                 mean_rtt += rtt
+
+                # Calculate Throughput: (bytes * 8) / seconds = bits per second (bps)
+                # bps / 1000 = kbps
+                tput_kbps = (args.size * 8) / rtt / 1000
+                mean_tput += tput_kbps
+
+                if args.measurement_type == "rtt":
+                    print(
+                        f"Received echo for sequence {seq_num}. RTT: {rtt:.5f} seconds"
+                    )
+                elif args.measurement_type == "tput":
+                    print(
+                        f"Received echo for sequence {seq_num}. Throughput: {tput_kbps:.2f} kbps"
+                    )
             else:
                 print("failed to receive echo.")
             seq_num += 1
 
         mean_rtt = mean_rtt / args.probes
-        print(f"Mean RTT time is {mean_rtt} seconds")
-
+        mean_tput = mean_tput / args.probes
+        if args.measurement_type == "rtt":
+            print(f"Final Result: Mean RTT time is {mean_rtt:.5f} seconds")
+        elif args.measurement_type == "tput":
+            print(f"Final Result: Mean Throughput is {mean_tput:.2f} kbps")
         # ----------------THIRD STEP----------------
         termination_req = "t\n"
         print("Sending termination request...")
