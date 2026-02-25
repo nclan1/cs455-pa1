@@ -68,6 +68,12 @@ if response.startswith("200 OK"):
     if measurement_type == "tput":
         print(f"\nAverage Throughput: {(total_tput/num_probes)/1e6:.3f} Mbps")
 
+    # Terminate connection
+    clientSocket.sendall(b"t\n")
+
+    termination_response, buf = recv_line(clientSocket, buf)
+    print("Server termination response:", termination_response)
+
 else:
     print("CSP failed.")
 

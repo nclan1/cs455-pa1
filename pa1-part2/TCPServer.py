@@ -107,6 +107,16 @@ try:
                 connectionSocket.sendall((mp_line + "\n").encode())
 
                 expected_seq += 1
+            
+            term_line, buf = recv_bytes(connectionSocket, buf)
+
+            if term_line == "t":
+                connectionSocket.sendall(b"200 OK: Closing Connection\n")
+            else:
+                connectionSocket.sendall(b"404 ERROR: Invalid Connection Termination Message\n")
+
+            connectionSocket.close()
+            
         else:
             connectionSocket.sendall(b"404 ERROR: Invalid Connection Setup Message\n")
             connectionSocket.close()
