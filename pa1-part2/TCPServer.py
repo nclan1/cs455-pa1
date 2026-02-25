@@ -1,15 +1,14 @@
 from socket import *
+import time
 
-def recv_bytes(conn):
-    data = b""
-    # newline is out delimiter and receive up to 1024 bytes
-    while b"\n" not in data:
-        chunk = conn.recv(1024)
+def recv_bytes(conn, buf):
+    while b"\n" not in buf:
+        chunk = conn.recv(4096)
         if not chunk:
-            return None
-        data += chunk
-    line, _rest = data.split(b"\n", 1)
-    return line.decode(errors="replace")
+            return None, buf
+        buf += chunk
+    line, buf = buf.split(b"\n", 1)
+    return line.decode(errors="replace"), buf
 
 serverPort = int(input("Input port number: "))
 serverSocket = socket(AF_INET, SOCK_STREAM)
@@ -29,7 +28,8 @@ try:
         print("Created a connection from", addr)
 
         # receive message
-        line = recv_bytes(connectionSocket)
+        buf = b""
+        line, buf = recv_bytes(connectionSocket,buf)
         if line is None:
             connectionSocket.close()
             continue
@@ -57,19 +57,19 @@ try:
         # response
         if valid:
             print(f"CSP succesfultype={mtype}, probes={nprobes}, msg_size={msgsize}, delay={delay}")
-            connectionSocket.sendall(b"200 OK: Ready")
+            connectionSocket.sendall(b"200 OK: Ready\n")
             
             expected_seq = 1
 
             for _ in range(nprobes):
-                mp_line = recv_bytes(connectionSocket)
+                mp_line,buf = recv_bytes(connectionSocket,buf)
                 if mp_line is None:
                     connectionSocket.close()
                     break
 
                 parts = mp_line.split(" ", 2)
                 if len(parts) != 3:
-                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message")
+                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message\n")
                     connectionSocket.close()
                     break
 
@@ -77,7 +77,7 @@ try:
 
                 # phase check
                 if phase != "m":
-                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message")
+                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message\n")
                     connectionSocket.close()
                     break
 
@@ -85,18 +85,18 @@ try:
                 try:
                     seq = int(seq_s)
                 except ValueError:
-                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message")
+                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message\n")
                     connectionSocket.close()
                     break
 
                 if seq != expected_seq or seq > nprobes:
-                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message")
+                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message\n")
                     connectionSocket.close()
                     break
 
                 # payload size check (bytes)
                 if len(payload.encode()) != msgsize:
-                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message")
+                    connectionSocket.sendall(b"404 ERROR: Invalid Measurement Message\n")
                     connectionSocket.close()
                     break
 
@@ -108,7 +108,7 @@ try:
 
                 expected_seq += 1
         else:
-            connectionSocket.sendall(b"404 ERROR: Invalid Connection Setup Message")
+            connectionSocket.sendall(b"404 ERROR: Invalid Connection Setup Message\n")
             connectionSocket.close()
             print("invalid CSP")
 
