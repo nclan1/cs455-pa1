@@ -23,8 +23,6 @@ print("Server response:", response)
 
 # Check Response
 if response.startswith("200 OK"):
-    # Check Response
-if response.startswith("200 OK"):
     print("CSP successful, now MP:")
 
     total_rtt = 0.0
