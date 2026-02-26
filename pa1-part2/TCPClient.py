@@ -40,15 +40,19 @@ if response.startswith("200 OK"):
 
     for seq in range(1, num_probes + 1):
 
+        #Create payload of msg_size bytes
         payload = "a" * msg_size
+        # format in m <sequence_number> <payload>\n
         probe_msg = f"m {seq} {payload}\n"
 
+        #Start counter before sending
         t_start = time.perf_counter()
 
         clientSocket.sendall(probe_msg.encode())
 
         echo, buf = recv_line(clientSocket, buf)
 
+         # Record the time as soon as the echo is fully received
         t_end = time.perf_counter()
 
         rtt = t_end - t_start
@@ -57,7 +61,10 @@ if response.startswith("200 OK"):
         if measurement_type == "rtt":
             print(f"Probe {seq} RTT: {rtt:.6f} seconds")
         if measurement_type == "tput":
-            tput_bps = (msg_size * 8) / rtt
+            # Throughput is calculated using total round-trip data.
+            # The payload travels to the server and back, so multiply by 2.
+            # Multiply by 8 to convert bytes to bits.
+            tput_bps = (msg_size * 8 * 2) / rtt
             total_tput += tput_bps
             print(f"Probe {seq} throughput: {tput_bps/1e6:.3f} Mbps")
 
